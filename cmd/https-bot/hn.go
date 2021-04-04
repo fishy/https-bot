@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/reddit/baseplate.go/log"
+	"github.com/reddit/baseplate.go/randbp"
 
 	"github.com/fishy/https-bot/internal/check"
 	"github.com/fishy/https-bot/internal/hnapi"
@@ -67,7 +68,7 @@ func hnMain(ctx context.Context, wg *sync.WaitGroup, cfg config) {
 				defer func() {
 					took := time.Now().Sub(start)
 					logger := log.Debugw
-					if took > cfg.HN.Interval/2 {
+					if took > cfg.HN.Interval/2 || randbp.ShouldSampleWithRate(cfg.HN.TickLogSampleRate) {
 						logger = log.Infow
 					}
 					logger(

@@ -37,12 +37,13 @@ type config struct {
 	Limit     int64    `yaml:"read_limit"`
 
 	HN struct {
-		Username     string        `yaml:"username"`
-		Password     string        `yaml:"password"`
-		Timeout      time.Duration `yaml:"timeout"`
-		ReplyTimeout time.Duration `yaml:"reply_timeout"`
-		Interval     time.Duration `yaml:"interval"`
-		Workers      int           `yaml:"workers"`
+		Username          string        `yaml:"username"`
+		Password          string        `yaml:"password"`
+		Timeout           time.Duration `yaml:"timeout"`
+		ReplyTimeout      time.Duration `yaml:"reply_timeout"`
+		Interval          time.Duration `yaml:"interval"`
+		Workers           int           `yaml:"workers"`
+		TickLogSampleRate float64       `yaml:"tick_log_sample_rate"`
 	} `yaml:"hn"`
 }
 

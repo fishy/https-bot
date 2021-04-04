@@ -12,6 +12,7 @@ go_library(
         "//internal/check",
         "//internal/hnapi",
         "@com_github_reddit_baseplate_go//log",
+        "@com_github_reddit_baseplate_go//randbp",
         "@com_github_reddit_baseplate_go//runtimebp",
         "@in_gopkg_yaml_v2//:yaml_v2",
     ],
