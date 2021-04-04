@@ -205,14 +205,14 @@ func hnMessage(results []*result) string {
 	var sb strings.Builder
 	for _, r := range results {
 		sb.WriteString(fmt.Sprintf(
-			"%s is the HTTPS version of %s you used that also works and with %.2f%% similarity on their contents.\n\n",
+			"%s is the HTTPS version of %s you used that works more securely and with %.2f%% similarity on their contents.\n\n",
 			r.newURL,
 			r.oldURL,
 			r.similarity*100,
 		))
 	}
 	sb.WriteString(
-		`(I'm a bot, see https://github.com/fishy/https-bot for source code)`,
+		`(I'm a bot, see https://github.com/fishy/https-bot for source code and FAQ)`,
 	)
 	return sb.String()
 }
