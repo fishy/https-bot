@@ -203,9 +203,9 @@ func BenchmarkSimilarity(b *testing.B) {
 			b.ResetTimer()
 
 			b.Run("identical", func(b *testing.B) {
-				b.RunParallel(func(pb *testing.PB) {
-					b.ReportAllocs()
+				b.ReportAllocs()
 
+				b.RunParallel(func(pb *testing.PB) {
 					for pb.Next() {
 						similarity.Similarity(aa, aa)
 					}
@@ -213,11 +213,36 @@ func BenchmarkSimilarity(b *testing.B) {
 			})
 
 			b.Run("different", func(b *testing.B) {
-				b.RunParallel(func(pb *testing.PB) {
-					b.ReportAllocs()
+				b.ReportAllocs()
 
+				b.RunParallel(func(pb *testing.PB) {
 					for pb.Next() {
 						similarity.Similarity(aa, bb)
+					}
+				})
+			})
+
+			b.Run("flip-one", func(b *testing.B) {
+				cc := make([]byte, size)
+				copy(cc, aa)
+				index := size / 2
+				cc[index] = cc[index] ^ 0xff
+				expected := size - 1
+				if actual := similarity.Similarity(aa, cc); actual != expected {
+					b.Fatalf(
+						"Expected %d, got %d\n% 02x\n% 02x",
+						expected,
+						actual,
+						aa,
+						cc,
+					)
+				}
+				b.ResetTimer()
+				b.ReportAllocs()
+
+				b.RunParallel(func(pb *testing.PB) {
+					for pb.Next() {
+						similarity.Similarity(aa, cc)
 					}
 				})
 			})
