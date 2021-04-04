@@ -38,6 +38,10 @@ func NewSession(ctx context.Context, Username, Password string) (*Session, error
 	}
 	client := &http.Client{
 		Jar: jar,
+		CheckRedirect: func(_ *http.Request, _ []*http.Request) error {
+			// No need to follow any redirects in this client
+			return http.ErrUseLastResponse
+		},
 	}
 	form := make(url.Values)
 	form.Set("acct", Username)
