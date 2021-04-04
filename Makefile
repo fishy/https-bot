@@ -1,7 +1,7 @@
 .PHONY: test bazeltest gotest
 
 BAZEL=bazel
-BAZEL_TEST=$(BAZEL) test //...:all
+BAZEL_TEST=$(BAZEL) test //:all_tests
 GO=go
 GO_TEST=$(GO) test -race ./...
 
