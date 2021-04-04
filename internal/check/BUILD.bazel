@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "check",
+    srcs = ["check.go"],
+    importpath = "github.com/fishy/https-bot/internal/check",
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//similarity",
+        "@com_github_reddit_baseplate_go//httpbp",
+    ],
+)
+
+go_test(
+    name = "check_test",
+    size = "small",
+    srcs = ["dummy_test.go"],
+    embed = [":check"],
+)
