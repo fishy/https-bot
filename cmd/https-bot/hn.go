@@ -15,9 +15,10 @@ import (
 )
 
 const (
-	defaultHNTimeout  = time.Second
-	defaultHNInterval = time.Minute
-	defaultHNWorkers  = 1
+	defaultHNTimeout      = time.Second
+	defaultHNReplyTimeout = time.Second * 10
+	defaultHNInterval     = time.Minute
+	defaultHNWorkers      = 1
 )
 
 func hnMain(ctx context.Context, wg *sync.WaitGroup, cfg config) {
@@ -25,6 +26,9 @@ func hnMain(ctx context.Context, wg *sync.WaitGroup, cfg config) {
 
 	if cfg.HN.Timeout <= 0 {
 		cfg.HN.Timeout = defaultHNTimeout
+	}
+	if cfg.HN.ReplyTimeout <= 0 {
+		cfg.HN.ReplyTimeout = defaultHNReplyTimeout
 	}
 	if cfg.HN.Workers <= 0 {
 		cfg.HN.Workers = defaultHNWorkers
@@ -147,15 +151,24 @@ func hnWorker(ctx context.Context, wg *sync.WaitGroup, session *hnapi.Session, c
 				continue
 			}
 			func(ctx context.Context) {
-				ctx, cancel := context.WithTimeout(ctx, cfg.HN.Timeout)
+				ctx, cancel := context.WithTimeout(ctx, cfg.HN.ReplyTimeout)
 				defer cancel()
 				msg := hnMessage(results)
+				start := time.Now()
 				err := session.Reply(ctx, item.ID, msg)
+				took := time.Now().Sub(start)
 				if err != nil {
-					log.Errorw("Failed to send reply", "err", err, "id", item.ID, "msg", msg)
+					log.Errorw(
+						"Failed to send reply",
+						"err", err,
+						"took", took.String(),
+						"id", item.ID,
+						"msg", msg,
+					)
 				} else {
 					log.Infow(
 						"Successfully replied",
+						"took", took.String(),
 						"parent", fmt.Sprintf("https://news.ycombinator.com/item?id=%d", item.ID),
 					)
 				}
