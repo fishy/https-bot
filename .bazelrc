@@ -1,1 +1,5 @@
 test --@io_bazel_rules_go//go/config:race --test_output=errors --test_verbose_timeout_warnings --verbose_failures
+
+# For version stamping
+build --stamp
+build --workspace_status_command='echo STABLE_SHORT_GIT_COMMIT $(echo $(git rev-parse HEAD) | cut -c1-12)'
