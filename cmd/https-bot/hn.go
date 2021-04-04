@@ -105,6 +105,7 @@ func hnWorker(ctx context.Context, wg *sync.WaitGroup, session *hnapi.Session, c
 	defer wg.Done()
 
 	self := strings.ToLower(cfg.HN.Username)
+	var results []*result
 	for {
 		select {
 		case <-ctx.Done():
@@ -122,7 +123,7 @@ func hnWorker(ctx context.Context, wg *sync.WaitGroup, session *hnapi.Session, c
 			if item.Deleted || item.Dead || strings.ToLower(item.By) == self {
 				continue
 			}
-			var results []*result
+			results = nil
 			for _, url := range item.URLs() {
 				r := func(ctx context.Context, url string) *result {
 					ctx, cancel := context.WithTimeout(ctx, cfg.HN.Timeout)
@@ -150,10 +151,9 @@ func hnWorker(ctx context.Context, wg *sync.WaitGroup, session *hnapi.Session, c
 			if len(results) == 0 {
 				continue
 			}
-			func(ctx context.Context) {
+			func(ctx context.Context, msg string) {
 				ctx, cancel := context.WithTimeout(ctx, cfg.HN.ReplyTimeout)
 				defer cancel()
-				msg := hnMessage(results)
 				start := time.Now()
 				err := session.Reply(ctx, item.ID, msg)
 				took := time.Now().Sub(start)
@@ -172,7 +172,7 @@ func hnWorker(ctx context.Context, wg *sync.WaitGroup, session *hnapi.Session, c
 						"parent", fmt.Sprintf("https://news.ycombinator.com/item?id=%d", item.ID),
 					)
 				}
-			}(ctx)
+			}(ctx, hnMessage(results))
 		}
 	}
 }
