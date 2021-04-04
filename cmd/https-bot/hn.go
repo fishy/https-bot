@@ -55,6 +55,11 @@ func hnMain(ctx context.Context, wg *sync.WaitGroup, cfg config) {
 	ticker := time.NewTicker(cfg.HN.Interval)
 	defer ticker.Stop()
 
+	log.Infow(
+		"starting hn main ticker...",
+		"interval", cfg.HN.Interval.String(),
+	)
+
 	lastMax := int64(-1)
 
 	for {
