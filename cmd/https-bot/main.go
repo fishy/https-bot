@@ -20,6 +20,11 @@ var (
 		"/data/config.yaml",
 		"path to the config file",
 	)
+	logLevel = flag.String(
+		"log-level",
+		"info",
+		"minimal log level to keep",
+	)
 )
 
 const (
@@ -43,7 +48,7 @@ type config struct {
 
 func main() {
 	flag.Parse()
-	log.InitLogger(log.InfoLevel)
+	log.InitLogger(log.Level(*logLevel))
 
 	cfg := parseConfig(*configPath)
 	if cfg.Threshold == nil {

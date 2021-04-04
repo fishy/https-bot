@@ -66,7 +66,7 @@ func hnMain(ctx context.Context, wg *sync.WaitGroup, cfg config) {
 				start := time.Now()
 				defer func() {
 					took := time.Now().Sub(start)
-					log.Infow(
+					log.Debugw(
 						"hn tick done",
 						"items", items,
 						"took", took.String(),
