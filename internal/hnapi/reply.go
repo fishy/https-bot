@@ -61,6 +61,9 @@ func NewSession(ctx context.Context, Username, Password string) (*Session, error
 	if err := httpbp.ClientErrorFromResponse(resp); err != nil {
 		return nil, fmt.Errorf("http request failed: %w", err)
 	}
+	if len(jar.Cookies(req.URL)) == 0 {
+		return nil, errors.New("login failed")
+	}
 	return &Session{client: client}, nil
 }
 
