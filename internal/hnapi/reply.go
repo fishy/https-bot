@@ -74,7 +74,6 @@ func (s *Session) Reply(ctx context.Context, id int64, content string) error {
 		return fmt.Errorf("failed to get parent post: %w", err)
 	}
 	form.Set("text", content)
-	fmt.Printf("%#v\n", form)
 	req, err := http.NewRequest(
 		http.MethodPost,
 		replyURL,
