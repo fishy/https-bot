@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -124,7 +125,9 @@ func hnWorker(ctx context.Context, wg *sync.WaitGroup, session *hnapi.Session, c
 					defer cancel()
 					newURL, sim, err := check.Check(ctx, url, cfg.Limit, nil)
 					if err != nil {
-						log.Errorw("Check failed", "err", err, "url", url)
+						if !errors.Is(err, check.ErrNotHTTP) {
+							log.Errorw("Check failed", "err", err, "url", url)
+						}
 						return nil
 					}
 					if sim < *cfg.Threshold {
@@ -150,6 +153,11 @@ func hnWorker(ctx context.Context, wg *sync.WaitGroup, session *hnapi.Session, c
 				err := session.Reply(ctx, item.ID, msg)
 				if err != nil {
 					log.Errorw("Failed to send reply", "err", err, "id", item.ID, "msg", msg)
+				} else {
+					log.Infow(
+						"Successfully replied",
+						"parent", fmt.Sprintf("https://news.ycombinator.com/item?id=%d", item.ID),
+					)
 				}
 			}(ctx)
 		}
