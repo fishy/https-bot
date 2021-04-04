@@ -16,3 +16,6 @@ bazeltest:
 
 gotest:
 	$(GO_TEST)
+
+deploy:
+	$(BAZEL) run //cmd/https-bot:push --config=linux_amd64
