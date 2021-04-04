@@ -44,7 +44,6 @@ go_image(
     name = "go_image",
     base = select_go_base(),
     embed = [":https-bot_lib"],
-    ports = ["6060"],
     visibility = ["//visibility:public"],
     x_defs = {
         "github.com/reddit/baseplate.go/log.Version": "{STABLE_SHORT_GIT_COMMIT}",
