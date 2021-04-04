@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "hnapi",
+    srcs = [
+        "firebase.go",
+        "item.go",
+        "second.go",
+    ],
+    importpath = "github.com/fishy/https-bot/internal/hnapi",
+    visibility = ["//:__subpackages__"],
+    deps = ["@com_github_reddit_baseplate_go//httpbp"],
+)
+
+go_test(
+    name = "hnapi_test",
+    size = "small",
+    srcs = ["item_test.go"],
+    deps = [":hnapi"],
+)
