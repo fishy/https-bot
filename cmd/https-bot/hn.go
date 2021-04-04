@@ -93,8 +93,11 @@ func hnMain(ctx context.Context, wg *sync.WaitGroup, cfg config) {
 					log.Errorw("Failed to get hn max item id", "err", err)
 					return
 				}
-				if lastMax < 0 {
+				defer func() {
 					lastMax = max
+				}()
+
+				if lastMax < 0 {
 					return
 				}
 				for i := max - 1; i >= lastMax; i-- {
@@ -115,74 +118,85 @@ func hnWorker(ctx context.Context, wg *sync.WaitGroup, session *hnapi.Session, c
 	defer wg.Done()
 
 	self := strings.ToLower(cfg.HN.Username)
-	var results []*result
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case i := <-c:
-			item, err := func(ctx context.Context) (*hnapi.Item, error) {
-				ctx, cancel := context.WithTimeout(ctx, cfg.HN.Timeout)
-				defer cancel()
-				return hnapi.GetItem(ctx, i)
-			}(ctx)
-			if err != nil {
-				log.Errorw("Failed to get hn item", "err", err, "id", i)
-				continue
-			}
-			if item.Deleted || item.Dead || strings.ToLower(item.By) == self {
-				continue
-			}
-			results = nil
-			for _, url := range item.URLs() {
-				r := func(ctx context.Context, url string) *result {
+			func(i int64) {
+				start := time.Now()
+				defer func() {
+					took := time.Now().Sub(start)
+					log.Debugw(
+						"hnWorker done",
+						"i", i,
+						"took", took.String(),
+					)
+				}()
+
+				item, err := func(ctx context.Context) (*hnapi.Item, error) {
 					ctx, cancel := context.WithTimeout(ctx, cfg.HN.Timeout)
 					defer cancel()
-					newURL, sim, err := check.Check(ctx, url, cfg.Limit, nil)
-					if err != nil {
-						if !errors.Is(err, check.ErrNotHTTP) {
-							log.Infow("Check failed", "err", err, "url", url)
-						}
-						return nil
-					}
-					if sim < *cfg.Threshold {
-						return nil
-					}
-					return &result{
-						oldURL:     url,
-						newURL:     newURL,
-						similarity: sim,
-					}
-				}(ctx, url)
-				if r != nil {
-					results = append(results, r)
-				}
-			}
-			if len(results) == 0 {
-				continue
-			}
-			func(ctx context.Context, msg string) {
-				ctx, cancel := context.WithTimeout(ctx, cfg.HN.ReplyTimeout)
-				defer cancel()
-				start := time.Now()
-				err := session.Reply(ctx, item.ID, msg)
-				took := time.Now().Sub(start)
+					return hnapi.GetItem(ctx, i)
+				}(ctx)
 				if err != nil {
-					log.Errorw(
-						"Failed to send reply",
-						"err", err,
-						"took", took.String(),
-						"id", item.ID,
-						"msg", msg,
-					)
-				} else {
-					log.Infow(
-						"Successfully replied",
-						"took", took.String(),
-						"parent", fmt.Sprintf("https://news.ycombinator.com/item?id=%d", item.ID),
-					)
+					log.Errorw("Failed to get hn item", "err", err, "id", i)
+					return
 				}
-			}(ctx, hnMessage(results))
+				if item.Deleted || item.Dead || strings.ToLower(item.By) == self {
+					return
+				}
+				var results []*result
+				for _, url := range item.URLs() {
+					r := func(ctx context.Context, url string) *result {
+						ctx, cancel := context.WithTimeout(ctx, cfg.HN.Timeout)
+						defer cancel()
+						newURL, sim, err := check.Check(ctx, url, cfg.Limit, nil)
+						if err != nil {
+							if !errors.Is(err, check.ErrNotHTTP) {
+								log.Infow("Check failed", "err", err, "url", url)
+							}
+							return nil
+						}
+						if sim < *cfg.Threshold {
+							return nil
+						}
+						return &result{
+							oldURL:     url,
+							newURL:     newURL,
+							similarity: sim,
+						}
+					}(ctx, url)
+					if r != nil {
+						results = append(results, r)
+					}
+				}
+				if len(results) == 0 {
+					return
+				}
+				func(ctx context.Context, msg string) {
+					ctx, cancel := context.WithTimeout(ctx, cfg.HN.ReplyTimeout)
+					defer cancel()
+					start := time.Now()
+					err := session.Reply(ctx, item.ID, msg)
+					took := time.Now().Sub(start)
+					if err != nil {
+						log.Errorw(
+							"Failed to send reply",
+							"err", err,
+							"took", took.String(),
+							"id", item.ID,
+							"msg", msg,
+						)
+					} else {
+						log.Infow(
+							"Successfully replied",
+							"took", took.String(),
+							"parent", fmt.Sprintf("https://news.ycombinator.com/item?id=%d", item.ID),
+						)
+					}
+				}(ctx, hnMessage(results))
+			}(i)
 		}
 	}
 }
