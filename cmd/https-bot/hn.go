@@ -186,7 +186,7 @@ func hnMessage(results []*result) string {
 	var sb strings.Builder
 	for _, r := range results {
 		sb.WriteString(fmt.Sprintf(
-			"%s is the HTTPS version of %s you used that also works and with %.2f similarity on their contents.\n\n",
+			"%s is the HTTPS version of %s you used that also works and with %.2f%% similarity on their contents.\n\n",
 			r.newURL,
 			r.oldURL,
 			r.similarity*100,
