@@ -32,3 +32,32 @@ go_test(
     srcs = ["dummy_test.go"],
     embed = [":https-bot_lib"],
 )
+
+# Docker related rules
+
+load("@io_bazel_rules_docker//go:image.bzl", "go_image")
+load("//:docker.bzl", "register_go_config_setting", "select_go_base")
+
+register_go_config_setting()
+
+go_image(
+    name = "go_image",
+    base = select_go_base(),
+    embed = [":https-bot_lib"],
+    ports = ["6060"],
+    visibility = ["//visibility:public"],
+    x_defs = {
+        "github.com/reddit/baseplate.go/log.Version": "{STABLE_SHORT_GIT_COMMIT}",
+    },
+)
+
+load("@io_bazel_rules_docker//container:container.bzl", "container_push")
+
+container_push(
+    name = "push",
+    format = "Docker",
+    image = ":go_image",
+    registry = "localhost:5000",
+    repository = "https-bot",
+    tag = "latest",
+)

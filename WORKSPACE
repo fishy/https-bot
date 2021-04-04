@@ -52,3 +52,29 @@ load("//:external.bzl", "go_dependencies")
 
 # gazelle:repository_macro external.bzl%go_dependencies
 go_dependencies()
+
+# For rules_docker
+RULES_DOCKER_VERSION = "v0.16.0"
+
+http_archive(
+    name = "io_bazel_rules_docker",
+    sha256 = "95d39fd84ff4474babaf190450ee034d958202043e366b9fc38f438c9e6c3334",
+    strip_prefix = "rules_docker-%s" % RULES_DOCKER_VERSION[1:],
+    urls = [
+        "https://github.com/bazelbuild/rules_docker/releases/download/%s/rules_docker-%s.tar.gz" % (RULES_DOCKER_VERSION, RULES_DOCKER_VERSION),
+    ],
+)
+
+load(
+    "@io_bazel_rules_docker//repositories:repositories.bzl",
+    container_repositories = "repositories",
+)
+
+container_repositories()
+
+load(
+    "@io_bazel_rules_docker//go:image.bzl",
+    _go_image_repos = "repositories",
+)
+
+_go_image_repos()
