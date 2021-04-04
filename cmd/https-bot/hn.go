@@ -130,7 +130,7 @@ func hnWorker(ctx context.Context, wg *sync.WaitGroup, session *hnapi.Session, c
 					newURL, sim, err := check.Check(ctx, url, cfg.Limit, nil)
 					if err != nil {
 						if !errors.Is(err, check.ErrNotHTTP) {
-							log.Errorw("Check failed", "err", err, "url", url)
+							log.Infow("Check failed", "err", err, "url", url)
 						}
 						return nil
 					}
